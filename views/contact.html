@@ -196,7 +196,7 @@
 </footer>
 
 <script>
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const form = event.target;
     const name = form.name.value.trim();
@@ -208,8 +208,28 @@
       return false;
     }
 
-    document.getElementById("confirmation").style.display = "block";
-    form.reset();
+    try {
+      const res = await fetch('http://localhost:5000/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById("confirmation").textContent = "✅ Thank you! Your message has been sent.";
+        document.getElementById("confirmation").style.color = "green";
+        document.getElementById("confirmation").style.display = "block";
+        form.reset();
+      } else {
+        document.getElementById("confirmation").textContent = data.message || "Failed to send message.";
+        document.getElementById("confirmation").style.color = "red";
+        document.getElementById("confirmation").style.display = "block";
+      }
+    } catch (err) {
+      document.getElementById("confirmation").textContent = "Failed to connect to backend.";
+      document.getElementById("confirmation").style.color = "red";
+      document.getElementById("confirmation").style.display = "block";
+    }
     return false;
   }
 </script>

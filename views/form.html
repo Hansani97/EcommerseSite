@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECommerce site</title>
-    <link rel="stylesheet" href="form.css">
+    <link rel="stylesheet" href="../public/css/form.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
@@ -74,50 +74,60 @@
                 document.getElementById('registerForm').style.display = 'block';
             });
 
-            // Toggle Login form
+           
             document.getElementById('showLogin').addEventListener('click', function (e) {
                 e.preventDefault();
                 document.getElementById('registerForm').style.display = 'none';
                 document.getElementById('loginForm').style.display = 'block';
             });
 
-            // Handle Login Form Submission
-            document.getElementById('loginForm').addEventListener('submit', function (e) {
+            document.getElementById('loginForm').addEventListener('submit', async function (e) {
                 e.preventDefault();
                 const username = this.querySelector('input[name="username"]').value;
                 const password = this.querySelector('input[name="password"]').value;
-
-                // Simulate login validation (replace with backend API call in production)
-                const users = JSON.parse(localStorage.getItem('users') || '{}');
-                if (users[username] && users[username].password === password) {
-                    localStorage.setItem('loggedInUser', username);
-                    document.getElementById('loginMessage').style.display = 'block';
-                    setTimeout(() => {
-                        window.location.href = 'tickets_shop.html';
-                    }, 2000);
-                } else {
-                    alert('Invalid username or password');
+                try {
+                    const res = await fetch('http://localhost:5000/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.token) {
+                        localStorage.setItem('loggedInUser', username);
+                        document.getElementById('loginMessage').style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = 'tickets_shop.html';
+                        }, 2000);
+                    } else {
+                        alert(data.message || 'Invalid username or password');
+                    }
+                } catch (err) {
+                    alert('Error connecting to backend.');
                 }
             });
 
-            // Handle Register Form Submission
-            document.getElementById('registerForm').addEventListener('submit', function (e) {
+            document.getElementById('registerForm').addEventListener('submit', async function (e) {
                 e.preventDefault();
                 const username = this.querySelector('input[name="username"]').value;
                 const password = this.querySelector('input[name="password"]').value;
-
-                // Simulate registration (replace with backend API call in production)
-                const users = JSON.parse(localStorage.getItem('users') || '{}');
-                if (users[username]) {
-                    alert('Username already exists');
-                } else {
-                    users[username] = { password };
-                    localStorage.setItem('users', JSON.stringify(users));
-                    localStorage.setItem('loggedInUser', username);
-                    document.getElementById('registerMessage').style.display = 'block';
-                    setTimeout(() => {
-                        window.location.href = 'tickets_shop.html';
-                    }, 2000);
+                try {
+                    const res = await fetch('http://localhost:5000/api/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        localStorage.setItem('loggedInUser', username);
+                        document.getElementById('registerMessage').style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = 'tickets_shop.html';
+                        }, 2000);
+                    } else {
+                        alert(data.message || 'Registration failed.');
+                    }
+                } catch (err) {
+                    alert('Error connecting to backend.');
                 }
             });
         });
